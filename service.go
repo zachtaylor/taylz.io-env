@@ -10,8 +10,8 @@ import (
 // Service is a basic k/v map
 type Service map[string]string
 
-// NewService creates an empty basic Service
-func NewService() Service { return Service{} }
+// New creates a Service
+func New() Service { return Service{} }
 
 // Keys returns a new slice of all named Service settings
 func (s Service) Keys() []string {
@@ -56,6 +56,9 @@ func (s Service) Parse(setting string) {
 	}
 }
 
+// ParseDefault is a macro for `ParseDefaultFile()`, `ParseEnv()`, and `ParseFlags()`
+func (s Service) ParseDefault() Service { return s.ParseDefaultFile().ParseEnv().ParseFlags() }
+
 // ParseEnv scans `os.Getenv` for available updates to this Service
 func (s Service) ParseEnv() Service {
 	for _, k := range s.Keys() {
@@ -84,36 +87,19 @@ func (s Service) ParseFile(path string) error {
 }
 
 // ParseDefaultFile calls `ParseFile` with `".env"`, logs and clears file error
-func (s Service) ParseDefaultFile() {
+func (s Service) ParseDefaultFile() Service {
 	if err := s.ParseFile(".env"); err != nil {
 		fmt.Println("env: " + err.Error())
-	}
-}
-
-// ParseFlags accepts raw string flag input, e.g. `os.Args[1:]`
-func (s Service) ParseFlags(args []string) Service {
-	for _, arg := range args {
-		if len(arg) > 1 && arg[0] == '-' {
-			s.Parse(arg[1:])
-		}
 	}
 	return s
 }
 
-// ParseAllFlags uses `ParseFlags` with `os.Args[1:]`
-func (s Service) ParseAllFlags() Service {
+// ParseFlags returns a new Service, loaded with `os.Args[1:]`
+func (s Service) ParseFlags() Service {
 	for _, arg := range os.Args[1:] {
 		if len(arg) > 1 && arg[0] == '-' {
 			s.Parse(arg[1:])
 		}
 	}
-	return s
-}
-
-// ParseDefault returns a new Service, loaded with `ParseFile(".env")`, `ParseEnv()`, and `ParseAllFlags()`
-func (s Service) ParseDefault() Service {
-	s.ParseDefaultFile()
-	s.ParseEnv()
-	s.ParseAllFlags()
 	return s
 }
