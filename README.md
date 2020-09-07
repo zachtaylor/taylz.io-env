@@ -7,18 +7,18 @@ Package env provides runtime environment, using flags, file, and/or environment 
 ```go
 func main() {
 	// most common case
-	env := env.Default() // overwrite package name why not
+	env := env.ParseDefault() // overwrite package name why not
 	server := server.New(env) // clients use env
 	...
 	// multiple env #1
-	serviceA := env.File(".private1.env") // new env with custom file name
-	serviceB := env.File(".private2.env") // new env with custom file name
+	serviceA, _ := env.ParseFile(".private1.env") // new env with custom file name
+	serviceB, _ := env.ParseFile(".private2.env") // new env with custom file name
 	handler1 := newXHandler(e1) // clients use env
 	handler2 := newYHandler(e2) // clients use env
 	server := server.New(handler1, handler2) // separate environments
 	...
 	// multiple env #2
-	env := env.Default() // load global environment
+	env := env.ParseDefault() // load global environment
 	dbenv := env.Match("DB_") // extract env from context
 	pay := env.Match("PAY_") // extract env from context
 	handler1 := newXHandler(dbenv) // clients use env
@@ -35,9 +35,9 @@ Executable: print all values in the default environment
 $ dotenv
 env: open .env: The system cannot find the file specified.
 env is empty
-$ dotenv -help
+$ dotenv -hello
 env: open .env: The system cannot find the file specified.
-help=true
+hello=true
 $ touch .env
 $ dotenv
 env is empty

@@ -3,16 +3,19 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"taylz.io/env"
 )
 
 func main() {
-	env := env.Default()
-	if len(env) < 1 {
-		fmt.Println("env is empty")
-	}
-	for k, v := range env {
-		fmt.Printf(k + "=" + v + "\n")
+	if len(os.Args) > 1 && os.Args[1] == "version" {
+		fmt.Println("dotenv version", env.Version)
+	} else if env := env.ParseDefault(); len(env) < 1 {
+		fmt.Println("dotenv: env is empty")
+	} else {
+		for k, v := range env {
+			fmt.Printf(k + "=" + v + "\n")
+		}
 	}
 }

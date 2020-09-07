@@ -56,8 +56,10 @@ func (s Service) Parse(setting string) {
 	}
 }
 
-// ParseDefault is a macro for `ParseDefaultFile()`, `ParseEnv()`, and `ParseFlags()`
-func (s Service) ParseDefault() Service { return s.ParseDefaultFile().ParseEnv().ParseFlags() }
+// ParseDefault is a macro for `ParseDefaultFile()`, `ParseEnv()`, and `ParseFlags(os.Args[1:])`
+func (s Service) ParseDefault() Service {
+	return s.ParseDefaultFile().ParseEnv().ParseArgs(os.Args[1:])
+}
 
 // ParseEnv scans `os.Getenv` for available updates to this Service
 func (s Service) ParseEnv() Service {
@@ -72,10 +74,10 @@ func (s Service) ParseEnv() Service {
 // ParseFile uses Parse to write file contents to Service
 //
 // Files can have comments (`#` style)
-func (s Service) ParseFile(path string) error {
+func (s Service) ParseFile(path string) (Service, error) {
 	file, e := ioutil.ReadFile(path)
 	if e != nil {
-		return e
+		return nil, e
 	}
 	for _, line := range strings.Split(string(file), "\n") {
 		line = strings.Trim(strings.Split(line, "#")[0], " \r")
@@ -83,20 +85,20 @@ func (s Service) ParseFile(path string) error {
 			s.Parse(line)
 		}
 	}
-	return nil
+	return s, nil
 }
 
 // ParseDefaultFile calls `ParseFile` with `".env"`, logs and clears file error
 func (s Service) ParseDefaultFile() Service {
-	if err := s.ParseFile(".env"); err != nil {
-		fmt.Println("env: " + err.Error())
+	if _, err := s.ParseFile(".env"); err != nil {
+		fmt.Println(err)
 	}
 	return s
 }
 
-// ParseFlags returns a new Service, loaded with `os.Args[1:]`
-func (s Service) ParseFlags() Service {
-	for _, arg := range os.Args[1:] {
+// ParseArgs returns a new Service, loaded with `os.Args[1:]`
+func (s Service) ParseArgs(args []string) Service {
+	for _, arg := range args {
 		if len(arg) > 1 && arg[0] == '-' {
 			s.Parse(arg[1:])
 		}
