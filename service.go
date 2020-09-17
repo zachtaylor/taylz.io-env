@@ -96,9 +96,21 @@ func (s Service) ParseDefaultFile() Service {
 	return s
 }
 
-// ParseArgs returns a new Service, loaded with `os.Args[1:]`
+// ParseArgs returns a new Service, loaded with the args
 func (s Service) ParseArgs(args []string) Service {
-	for _, arg := range args {
+	combargs := make([]string, 0)
+	for i := 0; i < len(args); i++ {
+		str := args[i]
+		if len(str) < 1 {
+			continue
+		}
+		for str[len(str)-1] == '\\' && i+1 < len(args) {
+			i++
+			str = str[:len(str)-1] + " " + args[i]
+		}
+		combargs = append(combargs, str)
+	}
+	for _, arg := range combargs {
 		if len(arg) > 1 && arg[0] == '-' {
 			s.Parse(arg[1:])
 		}
